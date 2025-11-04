@@ -1,6 +1,7 @@
 # chriopter.de
 My Site in Hugo.
 
+
 ## Content Features
 
 - **Photo:** Upload jpg to `import/` with a descriptive filename (e.g., "Sunset in Spain.jpeg"). Workflow will automatically Strip EXIF, Convert Filename, Create Post with Formatted Title.
