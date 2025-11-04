@@ -1,0 +1,17 @@
+{
+  "name": "big_bang",
+  "version": "2.0.0",
+  "description": "Advanced Big Bang and cosmic evolution simulation with galaxies, black holes, and cosmic web",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "three": "*",
+    "simplex-noise": "*",
+    "stats.js": "*"
+  }
+}

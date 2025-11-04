@@ -1,0 +1,299 @@
+{{ define "main" }}
+<style>
+/* Dark mode overrides */
+body {
+    background-color: #000 !important;
+    color: #eee !important;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+header {
+    border-bottom-color: #333 !important;
+}
+
+.site-title,
+.nav-links a {
+    color: #eee !important;
+}
+
+/* Fix dropdown text color to respect theme */
+.dropdown-content {
+    background-color: var(--bg-color) !important;
+}
+
+.dropdown-content a {
+    color: var(--text-color) !important;
+}
+
+.dropdown-content a:hover {
+    color: var(--secondary-text) !important;
+}
+
+footer {
+    border-top-color: #333 !important;
+}
+
+footer a {
+    color: #999 !important;
+}
+
+main {
+    max-width: none !important;
+    padding: 0 !important;
+}
+
+/* Photo grid layout */
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-auto-rows: 1px;
+    grid-auto-flow: row dense;
+    column-gap: 8px;
+    row-gap: 0;
+    padding: 8px;
+    width: 100vw;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+@media (min-width: 600px) {
+    .photo-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
+
+@media (min-width: 1200px) {
+    .photo-grid {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    }
+}
+
+@media (min-width: 1800px) {
+    .photo-grid {
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    }
+}
+
+/* Photo items */
+.photo-item {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    background: #111;
+    margin-bottom: 8px;
+}
+
+.photo-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.photo-item:hover img {
+    transform: scale(1.03);
+}
+
+.photo-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 25%;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    color: white;
+    padding: 20px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.photo-item:hover .photo-info {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.photo-info .title {
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.photo-info .date {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.photo-thumbs {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 70%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    justify-items: end;
+    align-items: end;
+}
+
+.photo-thumb {
+    width: 100%;
+    aspect-ratio: 1;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    position: relative;
+    grid-column: span 1;
+}
+
+/* Position thumbnails from right to left */
+.photo-thumb:nth-child(1):nth-last-child(1) {
+    grid-column: 3;
+}
+
+.photo-thumb:nth-child(1):nth-last-child(2) {
+    grid-column: 2;
+}
+
+.photo-thumb:nth-child(2):nth-last-child(1) {
+    grid-column: 3;
+}
+
+.photo-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.photo-thumb.more-indicator {
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-thumb.more-indicator img {
+    filter: blur(3px);
+    opacity: 0.4;
+}
+
+.photo-thumb.more-indicator .more-count {
+    position: absolute;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+</style>
+
+<div class="photo-grid">
+    {{ $photos := where .Site.RegularPages "Section" "photos" }}
+    {{ range $photos.ByDate.Reverse }}
+        {{ $page := . }}
+        {{ $images := .Resources.ByType "image" }}
+        {{ with index $images 0 }}
+            {{ $image := . }}
+            {{ $thumbnail := $image }}
+            {{ if not (or (eq $image.MediaType.SubType "heif") (eq $image.MediaType.SubType "heic")) }}
+                {{ $thumbnail = $image.Resize "1000x" }}
+            {{ end }}
+            {{ $aspectRatio := div (float $image.Height) (float $image.Width) }}
+            <a href="{{ $page.RelPermalink }}" class="photo-item" data-aspect-ratio="{{ $aspectRatio }}">
+                <img src="{{ $thumbnail.RelPermalink }}" alt="{{ $page.Title }}" loading="lazy" />
+                {{ if gt (len $images) 1 }}
+                <span class="photo-thumbs">
+                    {{ $totalImages := len $images }}
+                    {{ $extraImages := sub $totalImages 1 }}
+                    {{ $showCount := 3 }}
+                    {{ if gt $extraImages $showCount }}
+                        {{ range $i, $extra := first $showCount (after 1 $images) }}
+                            {{ $thumb := $extra }}
+                            {{ if not (or (eq $extra.MediaType.SubType "heif") (eq $extra.MediaType.SubType "heic")) }}
+                                {{ $thumb = $extra.Resize "200x" }}
+                            {{ end }}
+                            {{ if eq $i (sub $showCount 1) }}
+                            <span class="photo-thumb more-indicator">
+                                <img src="{{ $thumb.RelPermalink }}" alt="" loading="lazy" />
+                                <span class="more-count">+{{ sub $extraImages $showCount }}</span>
+                            </span>
+                            {{ else }}
+                            <span class="photo-thumb">
+                                <img src="{{ $thumb.RelPermalink }}" alt="" loading="lazy" />
+                            </span>
+                            {{ end }}
+                        {{ end }}
+                    {{ else }}
+                        {{ range $i, $extra := first 5 (after 1 $images) }}
+                            {{ $thumb := $extra }}
+                            {{ if not (or (eq $extra.MediaType.SubType "heif") (eq $extra.MediaType.SubType "heic")) }}
+                                {{ $thumb = $extra.Resize "200x" }}
+                            {{ end }}
+                            <span class="photo-thumb">
+                                <img src="{{ $thumb.RelPermalink }}" alt="" loading="lazy" />
+                            </span>
+                        {{ end }}
+                    {{ end }}
+                </span>
+                {{ end }}
+                <div class="photo-info">
+                    <div class="title">{{ $page.Title }}</div>
+                    <div class="date">{{ $page.Date.Format "January 2, 2006" }}</div>
+                </div>
+            </a>
+        {{ end }}
+    {{ end }}
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    function calculatePhotoHeights() {
+        const grid = document.querySelector('.photo-grid');
+        if (!grid) return;
+
+        const photos = grid.querySelectorAll('.photo-item');
+        if (!photos.length) return;
+
+        // Get column width with subpixel precision
+        const columnWidth = photos[0].getBoundingClientRect().width;
+
+        photos.forEach(photo => {
+            const aspectRatio = parseFloat(photo.dataset.aspectRatio);
+            if (!isNaN(aspectRatio)) {
+                // Height = width × aspect ratio + margin (8px)
+                const height = Math.ceil(columnWidth * aspectRatio) + 8;
+                photo.style.gridRowEnd = `span ${height}`;
+            }
+        });
+    }
+
+    // Debounced resize handler
+    let resizeTimer;
+    const handleResize = () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(calculatePhotoHeights, 50);
+    };
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', calculatePhotoHeights);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('load', calculatePhotoHeights);
+
+    // Handle zoom changes
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', calculatePhotoHeights);
+    }
+})();
+</script>
+
+{{ end }}

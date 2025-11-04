@@ -1,0 +1,44 @@
+{{ $site := .Site }}
+{{ $page := . }}
+{{ if reflect.IsMap . }}
+    {{ if .Site }}
+        {{ $site = .Site }}
+    {{ end }}
+    {{ if .Page }}
+        {{ $page = .Page }}
+    {{ end }}
+{{ end }}
+<div class="header-content">
+    <div class="site-title">
+        <div style="display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center;">
+                <a href="/" style="text-decoration: none; color: inherit;">{{ $site.Title }}</a>
+                <a href="/subscribe" style="margin-left: 0.75rem; text-decoration: none; color: inherit; display: flex; align-items: center;" title="Subscribe">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                </a>
+                <button class="moon-toggle" id="moonToggle" style="margin-left: 0.75rem; background: none; border: none; padding: 0; font: inherit; cursor: pointer;" title="Click to toggle theme, double-click to sync with system" aria-label="Toggle theme">🌕</button>
+            </div>
+        </div>
+    </div>
+    <nav class="nav-links">
+        <a href="/"{{ if eq $page.Kind "home" }} class="active"{{ end }}>all</a>
+        <a href="/photos"{{ if eq $page.Section "photos" }} class="active"{{ end }}>photos</a>
+        <a href="/texts"{{ if or (eq $page.Section "posts") (and (eq $page.Section "pages") (and $page.File (eq $page.File.BaseFileName "texts"))) }} class="active"{{ end }}>texts</a>
+        <div class="dropdown" id="bitsDropdown">
+            <a class="dropdown-trigger">bits</a>
+            <div class="dropdown-content">
+            {{ if $site }}
+                {{ $files := readDir "static/bits" }}
+                {{ range $files }}
+                    {{ if .IsDir }}
+                    <a href="/bits/{{ .Name }}" target="_blank">{{ .Name | humanize | lower }}</a>
+                    {{ end }}
+                {{ end }}
+            {{ end }}
+            </div>
+        </div>
+    </nav>
+</div>
